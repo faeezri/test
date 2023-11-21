@@ -1,0 +1,57 @@
+# server_name.tfvars
+
+server_name = "AZR1"
+
+
+# main.tf
+
+provider "azurerm" {
+  # Add your Azure provider configuration here
+}
+
+# Read initial server name from the data file
+locals {
+  initial_server_name = file("${path.module}/server_name.tfvars")
+}
+
+# Extract the server name from the data file
+data "external" "initial_server_name" {
+  program = ["bash", "-c", "echo '${local.initial_server_name}' | jq -r .server_name"]
+}
+
+# Increment the server name (e.g., AZR1 to AZR2)
+locals {
+  next_server_number = data.external.initial_server_name.result + 1
+  next_server_name   = "AZR${local.next_server_number}"
+}
+
+# Update the data file with the new server name
+resource "null_resource" "update_server_name" {
+  triggers = {
+    server_name = local.next_server_name
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      echo "server_name = \"${local.next_server_name}\"" > server_name.tfvars
+    EOT
+  }
+}
+
+# Use the updated server name for creating resources
+resource "azurerm_virtual_machine" "example" {
+  name                  = local.next_server_name
+  # Other VM configuration...
+}
+
+
+#extract using regular expression
+locals {
+  server_name_content = file("${path.module}/server_name.tfvars")
+  server_name         = regex("(?<=server_name = \")(.*)(?=\")", local.server_name_content)[0]
+}
+
+output "server_name" {
+  value = local.server_name
+}
+

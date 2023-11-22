@@ -55,3 +55,73 @@ output "server_name" {
   value = local.server_name
 }
 
+
+# 2ndoption###################################################################################
+
+provider "azurerm" {
+  # Configure Azure provider
+  features = {}
+}
+
+# Read the current server number from the data file
+data "local_file" "current_server_data" {
+  filename = "server_number.txt"
+}
+
+# Extract the current server number
+locals {
+  current_server_number = regex("[0-9]+", data.local_file.current_server_data.content)[0]
+}
+
+# Increment the server number for the new deployment
+locals {
+  new_server_number = format("AZR%s", tonumber(local.current_server_number) + 1)
+}
+
+# Write the updated server number back to the data file
+resource "null_resource" "update_server_number" {
+  triggers = {
+    new_server_number = local.new_server_number
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      echo "${local.new_server_number}" > server_number.txt
+    EOT
+  }
+}
+
+# Your Azure resource creation using the new server name
+resource "azurerm_virtual_machine" "example" {
+  name                  = local.new_server_number
+  location              = "East US"
+  resource_group_name   = "example-resource-group"
+  network_interface_ids = ["<NIC_ID>"]  # Replace with actual NIC ID
+  vm_size               = "Standard_DS1_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "example-os-disk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = local.new_server_number
+    admin_username = "adminuser"
+    admin_password = "AdminPassw0rd1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+

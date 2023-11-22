@@ -125,7 +125,7 @@ resource "azurerm_virtual_machine" "example" {
 }
 
 
-###ps server name remove quote"
+###ps server name remove quote" ######
 
 provisioner "local-exec" {
     command = <<EOT
@@ -134,3 +134,12 @@ provisioner "local-exec" {
     EOT
   }
 
+
+###cmd server name#####
+
+  provisioner "local-exec" {
+    command = <<EOT
+      for /f "delims=" %%a in ('echo ${local.new_server_number}') do set "newServerName=%%~a"
+      echo %newServerName% > ${var.server_name_file}
+    EOT
+  }

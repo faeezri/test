@@ -143,3 +143,16 @@ provisioner "local-exec" {
       echo %newServerName% > ${var.server_name_file}
     EOT
   }
+
+
+#####server name with 0000####
+
+locals {
+  current_number = regex("[0-9]+", var.server_name)[0]
+  new_number     = format("%04d", tonumber(local.current_number) + 1)
+  new_server_name = "AZR${local.new_number}"
+}
+
+output "new_server_name" {
+  value = local.new_server_name
+}

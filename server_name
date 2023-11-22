@@ -125,3 +125,12 @@ resource "azurerm_virtual_machine" "example" {
 }
 
 
+###ps server name remove quote"
+
+provisioner "local-exec" {
+    command = <<EOT
+      $newServerName = "${local.new_server_number}".Replace('"', '')
+      Set-Content -Path ${var.server_name_file} -Value $newServerName
+    EOT
+  }
+

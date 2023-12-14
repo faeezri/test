@@ -1,0 +1,23 @@
+# VMware vSphere connection details
+$vcServer = "your_vcenter_server"
+$vcUsername = "your_username"
+$vcPassword = "your_password"
+$vmTemplateName = "template_name"
+$cloneVMName = "new_vm_name"
+$datastoreName = "your_datastore_name"
+$clusterName = "your_cluster_name"
+$vmFolderName = "VM"
+
+# Connect to vSphere
+Connect-VIServer -Server $vcServer -User $vcUsername -Password $vcPassword
+
+# Clone VM
+$vmTemplate = Get-VM -Name $vmTemplateName
+$cloneSpec = New-Object VMware.Vim.VirtualMachineCloneSpec
+$cloneVM = $vmTemplate | New-VM -Name $cloneVMName -Location (Get-Folder -Name $vmFolderName) -RunAsync -ResourcePool (Get-Cluster -Name $clusterName | Get-ResourcePool) -Datastore (Get-Datastore -Name $datastoreName) -CloneSpec $cloneSpec
+
+# Power on the cloned VM
+Start-VM -VM $cloneVM -Confirm:$false
+
+# Disconnect from vSphere
+Disconnect-VIServer -Confirm:$false

@@ -1,0 +1,12 @@
+# Your PowerShell script to create a new snapshot
+$snapshotName = "task1"
+$serverName = "server1"
+
+# Creating a new snapshot
+$createdSnapshot = New-Snapshot -Server $serverName -Name "Snapshot $snapshotName"
+
+# Extracting the snapshot name from the created snapshot object
+$outputSnapshotName = $createdSnapshot.Name
+
+# Output the snapshot name
+Write-Output "snapshotname=`"$outputSnapshotName`""
